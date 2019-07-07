@@ -35,14 +35,13 @@ public class RobotSpawnController : MonoBehaviour
 
             var randomRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
 
-            var robot = Instantiate(_robotPrefab, spawnPosition, randomRotation);
-            robot.name = string.Format("Robot {0}: ({0}, {1})", i, rowId, columnId);
+            var robotGO = Instantiate(_robotPrefab, spawnPosition, randomRotation);
+            robotGO.name = string.Format("Robot {0}: ({0}, {1})", i, rowId, columnId);
+            var robot = robotGO.GetComponent<Robot>();
+            robot.Name = $"Robot {i}";
+            robot.IsReceivingIR = true;
+            robot.SetHeadColour(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f));
         }
 
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
     }
 }

@@ -7,16 +7,26 @@ public class LightController : MonoBehaviour
 {
     public Action<Color> ColourChanged;
 
+    private Color _currentColour;
+
     // Start is called before the first frame update
     Material _mat;
-    void Start()
+
+    void Awake()
     {
         _mat = gameObject.GetComponent<Renderer>().material;
     }
 
     public void SetColour(Color color)
     {
-        _mat.color = color;
+        _currentColour = color;
+        _mat.SetColor("_EmissionColor", _currentColour);
+
         ColourChanged?.Invoke(color);
+    }
+
+    public Color GetColour()
+    {
+        return _currentColour;
     }
 }

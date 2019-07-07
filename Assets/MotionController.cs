@@ -6,8 +6,8 @@ public class MotionController : MonoBehaviour, IGroundEventListener
 {
     [SerializeField] private GroundEventWrapper _eventWrapper;
     [SerializeField] private float _isFacingTolerance = 0.1f;
-    [SerializeField] private float _maxRotationPerFrame;
-    [SerializeField] private float _maxTranslationPerFrame;
+    [SerializeField] private float _maxRotationPerFrame = 6f;
+    [SerializeField] private float _maxTranslationPerFrame = 1f;
     [SerializeField] private LayerMask _layerMask;
 
     private Coroutine _coroutine;
@@ -75,6 +75,14 @@ public class MotionController : MonoBehaviour, IGroundEventListener
 
     void OnCollisionEnter()
     {
-        StopCoroutine(_coroutine);
+        CancelMovement();
+    }
+
+    public void CancelMovement()
+    {
+        if (_coroutine != null)
+        {
+            StopCoroutine(_coroutine);
+        }
     }
 }
