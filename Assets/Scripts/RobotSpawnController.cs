@@ -27,11 +27,11 @@ public class RobotSpawnController : MonoBehaviour
         for (int i = 0; i < _numberToSpawn; ++i)
         {
             var columnId = i % robotGridSize;
-            var spawnPosition = initPos + new Vector3(positionDelta.x * rowId, 0, positionDelta.z * columnId);
             if (i > 0 && columnId == 0)
             {
                 ++rowId;
             }
+            var spawnPosition = initPos + new Vector3(positionDelta.x * rowId, 0, positionDelta.z * columnId);
 
             var randomRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
 

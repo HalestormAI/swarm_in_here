@@ -191,7 +191,6 @@ GameObject:
   m_Component:
   - component: {fileID: 184440669}
   - component: {fileID: 184440670}
-  - component: {fileID: 184440671}
   - component: {fileID: 184440672}
   m_Layer: 0
   m_Name: Arena
@@ -228,21 +227,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _eventWrapper: {fileID: 11400000, guid: a1440e16ffa40a44f847af0984a6c001, type: 2}
---- !u!114 &184440671
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 184440668}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bc076240ba5ae2f4eb002777c2b9ca54, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _numberToSpawn: 0
-  _robotPrefab: {fileID: 0}
-  _planeObject: {fileID: 0}
 --- !u!114 &184440672
 MonoBehaviour:
   m_ObjectHideFlags: 0

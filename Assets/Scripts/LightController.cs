@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LightController : MonoBehaviour
+public class LightController : MonoBehaviour, IRobotIRSignalListener
 {
     public Action<Color> ColourChanged;
+
+    [SerializeField] private RobotIRSignalWrapper _signalWrapper;
 
     private Color _currentColour;
 
@@ -28,5 +30,10 @@ public class LightController : MonoBehaviour
     public Color GetColour()
     {
         return _currentColour;
+    }
+
+    public void OnRobotNearby(Robot robot, IrDirection drn, bool isReceiving, bool force)
+    {
+        SetColour(robot.GetHeadColour());
     }
 }
