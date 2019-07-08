@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: RobotDrivingParameters
   m_EditorClassIdentifier: 
   maxSteeringAngle: 70
-  maxTorque: 10000
+  maxTorque: 1000
+  maxVelocity: 0.25

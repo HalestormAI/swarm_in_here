@@ -106,7 +106,7 @@ public class Robot : MonoBehaviour
 
             if (robot.IsReceivingIR)
             {
-                Debug.LogFormat("{0}: Hello {1}", Name, robot.Name);
+                Debug.LogFormat("{0}: Hello {1} ({2})", Name, robot.Name, sensorDirection);
                 OnNearbyRobot?.Invoke(robot, sensorDirection, true, false);
             }
             OnNearbyRobot?.Invoke(robot, sensorDirection, robot.IsReceivingIR, true);

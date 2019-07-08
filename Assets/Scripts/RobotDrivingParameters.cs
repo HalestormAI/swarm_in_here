@@ -10,4 +10,6 @@ class RobotDrivingParameters : ScriptableObject
 {
     public float maxSteeringAngle = 70; // maximum steer angle the wheel can have
     public float maxTorque = 1f;
+    public float maxVelocity = 0.5f;
+    public float targetProximityThreshold = 2;
 }

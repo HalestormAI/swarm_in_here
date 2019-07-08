@@ -16,9 +16,11 @@ public class MotionController : MonoBehaviour, IGroundEventListener, IRobotIRSig
 //    [SerializeField] private float _maxRotationPerFrame = 6f;
     [SerializeField] private LayerMask _layerMask;
     [SerializeField] private AnimationCurve distanceCurve;
+    [SerializeField] private AnimationCurve velocityCurve;
     [SerializeField] private Rigidbody _rigidbody;
     private Coroutine _coroutine;
     private Coroutine _tempTargetCoroutine;
+    private Coroutine _brakingCoroutine;
     private Vector3 _target;
 
     private bool shouldWait = false;
@@ -88,10 +90,11 @@ public class MotionController : MonoBehaviour, IGroundEventListener, IRobotIRSig
         }
 
         var distance = Vector3.Distance(transform.position, _target);
-        float v = _rigidbody.velocity.sqrMagnitude / 1;
+        float v = _rigidbody.velocity.sqrMagnitude;
 
+//        float motor =  velocityCurve.Evaluate(v) * distanceCurve.Evaluate(distance/60) * _drivingParameters.maxTorque;
 
-        float motor =  distanceCurve.Evaluate(v) * _drivingParameters.maxTorque;
+        float motor = v > _drivingParameters.maxVelocity ? 0 : _drivingParameters.maxTorque;
 
         var drnToTarget = _target - transform.position;
         var angle = Vector3.SignedAngle(transform.forward, drnToTarget, Vector3.up) + Random.Range(-10f, 10f);
@@ -99,20 +102,23 @@ public class MotionController : MonoBehaviour, IGroundEventListener, IRobotIRSig
         float steering = (angle < 0 ? -1 : 1) * Mathf.Min(Mathf.Abs(angle), _drivingParameters.maxSteeringAngle);
 
 
-        if (distance < 0.2) 
+        if (distance < _drivingParameters.targetProximityThreshold) 
         {
             _driving = false;
+            if (_brakingCoroutine == null)
+            {
+                StartCoroutine(ApplyBrakes());
+            }
+
             HitTarget?.Invoke();
+            return;
         }
 
         foreach (AxleInfo axleInfo in _axleInfos)
         {
-            if (!_driving && axleInfo.handbrake)
-            {
-                axleInfo.leftWheel.brakeTorque = 1000000;
-                axleInfo.rightWheel.brakeTorque = 1000000;
-                continue;
-            }
+
+            axleInfo.leftWheel.brakeTorque = 0;
+            axleInfo.rightWheel.brakeTorque = 0;
 
             if (axleInfo.steering)
             {
@@ -127,6 +133,24 @@ public class MotionController : MonoBehaviour, IGroundEventListener, IRobotIRSig
         }
     }
 
+    private IEnumerator ApplyBrakes()
+    {
+        while (_rigidbody.velocity.sqrMagnitude > 0.1)
+        {
+            yield return null;
+            foreach (AxleInfo axleInfo in _axleInfos)
+            {
+                axleInfo.leftWheel.motorTorque = 0;
+                axleInfo.rightWheel.motorTorque = 0;
+                if (!_driving && axleInfo.handbrake)
+                {
+                    axleInfo.leftWheel.brakeTorque = 1000000;
+                    axleInfo.rightWheel.brakeTorque = 1000000;
+                    continue;
+                }
+            }
+        }
+    }
     public void OnTargetChanged(Vector3 pos)
     {
         SetTarget(pos);
@@ -152,24 +176,29 @@ public class MotionController : MonoBehaviour, IGroundEventListener, IRobotIRSig
     {
         if (drn == IrDirection.Forward)
         {
-//            shouldWait = true;
+            //            shouldWait = true;
 
-            if (_tempTargetCoroutine == null)
+            //            if (_tempTargetCoroutine == null)
+            //            {
+            //                _tempTargetCoroutine = StartCoroutine(SetTemporaryTarget());
+            //            }
+            if (_brakingCoroutine == null)
             {
-                _tempTargetCoroutine = StartCoroutine(SetTemporaryTarget());
+                StartCoroutine(ApplyBrakes());
             }
         }
     }
 
     private IEnumerator SetTemporaryTarget()
     {
-        Debug.Log("Redirecting the robot!");
-        transform.Rotate(Vector3.up, Random.Range(45f, 180f));
-        var originalTarget = _target;
-        _target = transform.forward * 10;
-        yield return new WaitForSeconds(Random.Range(1f, 5f));
-        _target = originalTarget;
-        Debug.Log("Resetting the robot!");
+//        Debug.Log("Redirecting the robot!");
+//        transform.Rotate(Vector3.up, Random.Range(45f, 180f));
+//        var originalTarget = _target;
+//        _target = transform.forward * 10;
+//        yield return new WaitForSeconds(Random.Range(1f, 5f));
+//        _target = originalTarget;
+//        Debug.Log("Resetting the robot!");
+        yield return null;
     }
 
 
