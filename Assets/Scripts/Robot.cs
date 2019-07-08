@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using Assets.Scripts;
 using UnityEngine;
+using Assert = UnityEngine.Assertions.Assert;
 using Random = UnityEngine.Random;
 
 public enum IrDirection
@@ -29,14 +32,21 @@ public class Robot : MonoBehaviour
     [SerializeField] private GameObject IR_Left;
     [SerializeField] private GameObject IR_Right;
 
+    private List<Guid> receivedPackets;
+
     public bool IsReceivingIR { get; set; }
     public string Name { get; set; }
     public bool ShouldEmit = true;
 
+    private RobotRadioController _radioController;
+    private bool _canReceivePackets = true;
 
     // Start is called before the first frame update
     void Start()
     {
+        _radioController = FindObjectOfType<RobotRadioController>();
+        Assert.IsNotNull(_radioController);
+        receivedPackets = new List<Guid>();
         _signalWrapper = ScriptableObject.CreateInstance<RobotIRSignalWrapper>();
         _signalWrapper.RegisterRobot(this);
         _signalWrapper.RegisterListener(_lightController);
@@ -53,7 +63,11 @@ public class Robot : MonoBehaviour
 
     private void OnHitTarget()
     {
-        _lightController.SetColour(Random.ColorHSV(0f,1f, 0.5f, 1f, 0.5f, 1f));
+        var colour = Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f);
+        _lightController.SetColour(colour);
+        Stop();
+        SendBCast(new HeadColourPacket(colour));
+        SendBCast(new AllStopPacket());
     }
 
     private IEnumerator EmitIR()
@@ -106,7 +120,7 @@ public class Robot : MonoBehaviour
 
             if (robot.IsReceivingIR)
             {
-                Debug.LogFormat("{0}: Hello {1} ({2})", Name, robot.Name, sensorDirection);
+//                Debug.LogFormat("{0}: Hello {1} ({2})", Name, robot.Name, sensorDirection);
                 OnNearbyRobot?.Invoke(robot, sensorDirection, true, false);
             }
             OnNearbyRobot?.Invoke(robot, sensorDirection, robot.IsReceivingIR, true);
@@ -115,7 +129,7 @@ public class Robot : MonoBehaviour
 
     public void Stop()
     {
-        _motionController.CancelMovement();
+        _motionController.CancelMovement(false);
     }
 
     public void SetHeadColour(Color colour)
@@ -125,5 +139,42 @@ public class Robot : MonoBehaviour
     public Color GetHeadColour()
     {
         return _lightController.GetColour();
+    }
+
+    public void SendBCast(MockPacket packet)
+    {
+        _radioController.BCast(this, packet);
+        StartCoroutine(BlockPacketReceipt(2));
+    }
+
+    private IEnumerator BlockPacketReceipt(float secs)
+    {
+        _canReceivePackets = false;
+        yield return new WaitForSeconds(secs);
+        _canReceivePackets = true;
+    }
+
+    public void ReceiveBCast(Robot source, MockPacket packet)
+    {
+        // We've seen this before, don't process it again
+        if (!_canReceivePackets || receivedPackets.Contains(packet.guid))
+        {
+            return;
+        }
+
+        receivedPackets.Add(packet.guid);
+        if (packet.type == PacketType.AllStop)
+        {
+            Stop();
+        } else if(packet.type == PacketType.HeadColour)
+        {
+            SetHeadColour((packet as HeadColourPacket).HeadColor);
+        } else if (packet.type == PacketType.RequestSpace)
+        {
+            _motionController.Reverse((packet as RequestSpacePacket).AmountOfSpace);
+        }
+
+        if (!packet.HasExpired())
+            _radioController.BCast(source, packet);
     }
 }

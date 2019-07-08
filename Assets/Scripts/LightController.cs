@@ -34,6 +34,7 @@ public class LightController : MonoBehaviour, IRobotIRSignalListener
 
     public void OnRobotNearby(Robot robot, IrDirection drn, bool isReceiving, bool force)
     {
-        SetColour(robot.GetHeadColour());
+        if (drn == IrDirection.Forward)
+            SetColour(robot.GetHeadColour());
     }
 }

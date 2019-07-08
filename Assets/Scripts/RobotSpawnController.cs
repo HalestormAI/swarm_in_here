@@ -1,25 +1,27 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts;
 using UnityEngine;
 
 public class RobotSpawnController : MonoBehaviour
 {
     [SerializeField] private int _numberToSpawn;
     [SerializeField] private GameObject _robotPrefab;
+    [SerializeField] private Transform _robotPool;
     [SerializeField] private MeshCollider _planeObject;
 
-    private List<GameObject> _spawnedRobots;
+    private static List<Robot> _spawnedRobots = new List<Robot>();
+
+    public static List<Robot> SpawnedRobots => _spawnedRobots;
 
     // Start is called before the first frame update
     void Start()
     {
-        _spawnedRobots = new List<GameObject>();
-
-        var planeSize = _planeObject.bounds.size - 2*Vector3.one;
+        var planeSize = _planeObject.bounds.size - 2 * Vector3.one;
         var initPos = _planeObject.bounds.min + Vector3.one;
         initPos.y = 0;
 
-        var robotGridSize = (int)Mathf.Ceil(Mathf.Sqrt(_numberToSpawn));
+        var robotGridSize = (int) Mathf.Ceil(Mathf.Sqrt(_numberToSpawn));
 
         var positionDelta = planeSize / robotGridSize;
 
@@ -31,17 +33,18 @@ public class RobotSpawnController : MonoBehaviour
             {
                 ++rowId;
             }
+
             var spawnPosition = initPos + new Vector3(positionDelta.x * rowId, 0, positionDelta.z * columnId);
 
             var randomRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
 
-            var robotGO = Instantiate(_robotPrefab, spawnPosition, randomRotation);
+            var robotGO = Instantiate(_robotPrefab, spawnPosition, randomRotation, _robotPool);
             robotGO.name = string.Format("Robot {0}: ({0}, {1})", i, rowId, columnId);
             var robot = robotGO.GetComponent<Robot>();
             robot.Name = $"Robot {i}";
             robot.IsReceivingIR = true;
             robot.SetHeadColour(Random.ColorHSV(0f, 1f, 0.5f, 1f, 0.5f, 1f));
+            _spawnedRobots.Add(robot);
         }
-
     }
 }
